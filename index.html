@@ -1,69 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>IDW Grid in Leaflet</title>
+  <title>Forecast AQHI Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
     #map { height: 100vh; }
+    .legend {
+      background: white;
+      padding: 10px;
+      line-height: 1.5;
+    }
+    .legend i {
+      width: 18px;
+      height: 18px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body>
-  <div id="map"></div>
+<div id="map"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-  <script>
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([53.5, -113.5], 8);
 
-    // Initialize the map
-    var map = L.map('map').setView([53.5, -113.5], 8); // Adjust center and zoom
-
-    // Add base layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // Base layers
+  const baseLayers = {
+    "Streets": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18
+    }).addTo(map),
+    "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 18,
-    }).addTo(map);
-
-    // Color function
-function getColor(aqhi) {
-  switch (aqhi) {
-    case "1": return "#01cbff";
-    case "2": return "#0099cb";
-    case "3": return "#016797";
-    case "4": return "#fffe03";
-    case "5": return "#ffcb00";
-    case "6": return "#ff9835";
-    case "7": return "#fd6866";
-    case "8": return "#fe0002";
-    case "9": return "#cc0001";
-    case "10": return "#9a0100";
-    case "10+": return "#640100";
-    default: return "#D3D3D3";
-  }
-}
-
-function style(feature) {
-  return {
-    fillColor: getColor(feature.properties.aqhi_str),
-    weight: 0.5,
-    opacity: 1,
-    color: 'white',
-    dashArray: '3',
-    fillOpacity: 0.7
+      attribution: 'Tiles © Esri'
+    })
   };
-}
 
-    // Load GeoJSON from GitHub
-    fetch("./interpolated_grid.geojson") 
-      .then(response => response.json())
+  // Color by AQHI value
+  function getColor(aqhi) {
+    return {
+      "1": "#01cbff",
+      "2": "#0099cb",
+      "3": "#016797",
+      "4": "#fffe03",
+      "5": "#ffcb00",
+      "6": "#ff9835",
+      "7": "#fd6866",
+      "8": "#fe0002",
+      "9": "#cc0001",
+      "10": "#9a0100",
+      "10+": "#640100"
+    }[aqhi] || "#D3D3D3";
+  }
+
+  function style(feature) {
+    return {
+      fillColor: getColor(feature.properties.aqhi_str),
+      weight: 0.5,
+      opacity: 1,
+      color: 'white',
+      fillOpacity: 0.7
+    };
+  }
+
+  const overlayLayers = {};
+  const layersInfo = {
+    "Now": "interpolated_grid_now.geojson",
+    "T+1 Hour": "interpolated_grid_t+1.geojson",
+    "T+2 Hours": "interpolated_grid_t+2.geojson",
+    "T+3 Hours": "interpolated_grid_t+3.geojson"
+  };
+
+  for (const [label, file] of Object.entries(layersInfo)) {
+    fetch(`./output/${file}`)
+      .then(resp => resp.json())
       .then(data => {
-        L.geoJson(data, {
+        const layer = L.geoJson(data, {
           style: style,
-          onEachFeature: function (feature, layer) {
-            layer.bindPopup("AQHI: " + feature.properties.aqhi_str);
+          onEachFeature: (feature, layer) => {
+            layer.bindPopup(`${label}<br><b>AQHI:</b> ${feature.properties.aqhi_str}`);
           }
-        }).addTo(map);
+        });
+        overlayLayers[label] = layer;
+        if (label === "Now") layer.addTo(map); // Default visible
       });
+  }
 
-  </script>
+  L.control.layers(baseLayers, overlayLayers).addTo(map);
+
+  // Add legend
+  const legend = L.control({ position: 'bottomright' });
+  legend.onAdd = function () {
+    const div = L.DomUtil.create('div', 'legend');
+    const grades = ["1","2","3","4","5","6","7","8","9","10","10+"];
+    grades.forEach(g => {
+      div.innerHTML += `<i style="background:${getColor(g)}"></i> ${g}<br>`;
+    });
+    return div;
+  };
+  legend.addTo(map);
+
+  // Auto-refresh every 60 minutes
+  setInterval(() => location.reload(), 60 * 60 * 1000);
+</script>
 </body>
 </html>
