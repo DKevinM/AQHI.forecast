@@ -30,7 +30,8 @@ jobs:
             numpy \
             shapely \
             matplotlib \
-            requests
+            requests \
+            scikit-learn
 
       - name: Run AQHI Forecast Script
         run: python aqhi_map_forecast.py
