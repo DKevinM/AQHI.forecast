@@ -1,1 +1,46 @@
+name: Hourly AQHI Grid Forecast
 
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            pandas \
+            geopandas \
+            scipy \
+            numpy \
+            shapely \
+            matplotlib \
+            requests
+
+      - name: Run AQHI Forecast Script
+        run: python aqhi_map_forecast.py
+
+      - name: Commit & Push Forecast GeoJSONs
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add output/*.geojson
+          git commit --allow-empty -m "Update forecast AQHI GeoJSONs"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
