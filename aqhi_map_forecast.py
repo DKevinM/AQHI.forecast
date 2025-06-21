@@ -106,7 +106,8 @@ def prepare_forecast_features(df, lags=3):
             station_data["AQHI_target"] = station_data["AQHI"]
 
         # Keep only complete cases
-        station_dfs.append(station_data.dropna())
+        required_cols = [f"AQHI_lag{lag}" for lag in range(1, lags + 1)] + ["AQHI_target"]
+        station_dfs.append(station_data.dropna(subset=required_cols))
 
     # Final output
     result = pd.concat(station_dfs, ignore_index=True)
