@@ -24,10 +24,10 @@ jobs:
           echo "Installing dependencies..."
           pip install -r requirements.txt
 
-      - name: Run GeoJSON generator
+      - name: Run aqhi_map_forecast.py
         run: |
-          echo "Running generate_geojson.py..."
-          python generate_geojson.py || { echo "Python script failed!"; exit 1; }
+          echo "Running aqhi_map_forecast.py..."
+          python aqhi_map_forecast.py || { echo "Python script failed!"; exit 1; }
 
       - name: Debug output directory contents
         run: |
