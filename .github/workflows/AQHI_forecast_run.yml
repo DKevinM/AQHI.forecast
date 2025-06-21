@@ -24,7 +24,7 @@ jobs:
           echo "Installing dependencies..."
           pip install -r requirements.txt
 
-      - name: Run aqhi_map_forecast.py
+      - name: Run forecast
         run: |
           echo "Running aqhi_map_forecast.py..."
           python aqhi_map_forecast.py || { echo "Python script failed!"; exit 1; }
