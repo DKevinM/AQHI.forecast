@@ -121,9 +121,6 @@ def prepare_forecast_features(df, lags=3):
 from sklearn.ensemble import RandomForestRegressor
 
 def forecast_next_3_hours(data):
-    print(f"Forecast DataFrame shape: {forecast_df.shape}")
-    print(f"Forecast columns: {forecast_df.columns.tolist()}")
-
     station_predictions = []
 
     for station in data['StationName'].unique():
