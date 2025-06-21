@@ -121,6 +121,9 @@ def prepare_forecast_features(df, lags=3):
 from sklearn.ensemble import RandomForestRegressor
 
 def forecast_next_3_hours(data):
+    print(f"Forecast DataFrame shape: {forecast_df.shape}")
+    print(f"Forecast columns: {forecast_df.columns.tolist()}")
+
     station_predictions = []
 
     for station in data['StationName'].unique():
@@ -220,6 +223,10 @@ def generate_and_save_forecast_grids(forecast_df, shapefile_path, output_dir="ou
             ])
             polygons.append(poly)
             vals.append(grid_values[i])
+
+        print(f"✅ Forecast DataFrame shape: {forecast_df.shape}")
+        print("Columns:", forecast_df.columns.tolist())
+        print("Sample:", forecast_df.head())
 
         grid_gdf = gpd.GeoDataFrame({'value': vals}, geometry=polygons, crs="EPSG:4326")
         grid_gdf = gpd.overlay(grid_gdf, region, how="intersection")
