@@ -107,7 +107,7 @@ def get_forecast_weather(lat, lon):
         "forecast_days": 1,
         "timezone": "America/Edmonton"
     }
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, timeout=60)
     data = response.json()
 
     df = pd.DataFrame({
