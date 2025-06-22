@@ -1,7 +1,0 @@
-geopandas
-pandas
-numpy
-matplotlib
-shapely
-scikit-learn
-requests
