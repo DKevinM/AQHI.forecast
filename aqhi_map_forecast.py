@@ -335,9 +335,9 @@ def generate_and_save_forecast_grids(forecast_df, shapefile_path, output_dir="ou
 
 
 
-        # Run this as your final process:
-        generate_current_grid(df, shapefile_path="data/Edm.shp", output_dir="output")
-        
-        forecast_df = forecast_next_3_hours(prepare_forecast_features(df))
-        generate_and_save_forecast_grids(forecast_df, shapefile_path="data/Edm.shp", output_dir="output")
-        
+# Run this as your final process:
+generate_current_grid(df, shapefile_path="data/Edm.shp", output_dir="output")
+
+forecast_df = forecast_next_3_hours(prepare_forecast_features(df))
+generate_and_save_forecast_grids(forecast_df, shapefile_path="data/Edm.shp", output_dir="output")
+
