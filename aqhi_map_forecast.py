@@ -252,6 +252,9 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
         "geometry": polygons
     }, crs="EPSG:4326")
 
+    print("Done generating GeoJSONs")
+
+    
     out_path = os.path.join(output_dir, "AQHI_now.geojson")
     gdf.to_file(out_path, driver="GeoJSON")
     print(f"Saved: {out_path}")
