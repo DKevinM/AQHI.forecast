@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           echo "Installing necessary Python packages..."
-          pip install pandas geopandas numpy requests shapely matplotlib scikit-learn
+          pip install pandas geopandas fiona pyogrio numpy requests shapely matplotlib scikit-learn
 
       - name: Run forecast
         run: |
