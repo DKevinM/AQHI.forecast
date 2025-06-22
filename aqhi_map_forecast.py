@@ -191,6 +191,16 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
+    # Ensure the output directory exists
+    if not os.path.exists(output_dir):
+        print(f"Creating output directory: {output_dir}")
+        os.makedirs(output_dir)
+    else:
+        print(f"Output directory already exists: {output_dir}")
+
+    # Debug: show how many points we’re interpolating from
+    print(f"Generating current grid from {len(latest_aqhi)} stations")
+
     region = gpd.read_file(shapefile_path).to_crs("EPSG:4326")
     xmin, ymin, xmax, ymax = region.total_bounds
     x = np.arange(xmin, xmax, cellsize)
