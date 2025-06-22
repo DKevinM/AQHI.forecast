@@ -7,8 +7,8 @@ from datetime import datetime
 from shapely.geometry import Point, Polygon
 from scipy.spatial import cKDTree
 from scipy.interpolate import griddata
+from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
-import requests
 from io import StringIO
 
 
@@ -74,8 +74,6 @@ def prepare_forecast_features(df, lags=3):
         .rename(columns={"Value": "AQHI_now"})
     )
 
-import requests
-
     station_meta = df[["StationName", "Latitude", "Longitude"]].drop_duplicates()
     pivoted = df.pivot_table(index=["ReadingDate", "StationName"], columns="ParameterName", values="Value").reset_index()
     pivoted = pivoted.merge(station_meta, on="StationName", how="left")
@@ -118,69 +116,67 @@ def get_forecast_weather(lat, lon):
         "humidity": data["hourly"]["relative_humidity_2m"],
         "windspeed": data["hourly"]["windspeed_10m"]
     })
-return df
+    return df
 
-
-from sklearn.ensemble import RandomForestRegressor
 
 def forecast_next_3_hours(data):
     station_predictions = []
 
-for station in data['StationName'].unique():
-    station_data = data[data['StationName'] == station].sort_values("ReadingDate")
-    train_data = station_data.iloc[:-1]
-    test_row = station_data.iloc[-1:].copy()
-
-    if len(train_data) < 5:
-        continue
-
-    # Weather forecast fetch
-    lat = test_row["Latitude"].values[0]
-    lon = test_row["Longitude"].values[0]
-    weather_forecast = get_forecast_weather(lat, lon)
-
-    feature_cols = [
-        col for col in train_data.columns
-        if any(col.startswith(v + "_lag") for v in ["AQHI", "Outdoor Temperature", "Wind Speed", "Relative Humidity"])
-    ]
-
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    X_train = train_data[feature_cols]
-    y_train = train_data["AQHI_target"]
-    model.fit(X_train, y_train)
-
-    preds = []
-
-    for step in range(3):
-        # Update weather lags
-        t_step = test_row["ReadingDate"].values[0] + pd.Timedelta(hours=step + 1)
-        row_weather = weather_forecast[weather_forecast["time"] == pd.Timestamp(t_step).round("h")]
-
-        if not row_weather.empty:
-            test_row["Outdoor Temperature_lag1"] = row_weather["temperature"].values[0]
-            test_row["Relative Humidity_lag1"] = row_weather["humidity"].values[0]
-            test_row["Wind Speed_lag1"] = row_weather["windspeed"].values[0]
-
-        pred = model.predict(test_row[feature_cols])[0]
-        preds.append(pred)
-
-        # Shift AQHI lags forward
-        for lag in range(3, 0, -1):
-            from_col = f"AQHI_lag{lag - 1}" if lag > 1 else None
-            to_col = f"AQHI_lag{lag}"
-            test_row[to_col] = pred if lag == 1 else test_row[from_col].values[0]
-
-    station_predictions.append({
-        "StationName": station,
-        "Latitude": test_row["Latitude"].values[0],
-        "Longitude": test_row["Longitude"].values[0],
-        "ForecastBaseTime": test_row["ReadingDate"].values[0],
-        "AQHI_forecast_t1": preds[0],
-        "AQHI_forecast_t2": preds[1],
-        "AQHI_forecast_t3": preds[2]
-    })
-
-return pd.DataFrame(station_predictions)
+    for station in data['StationName'].unique():
+        station_data = data[data['StationName'] == station].sort_values("ReadingDate")
+        train_data = station_data.iloc[:-1]
+        test_row = station_data.iloc[-1:].copy()
+    
+        if len(train_data) < 5:
+            continue
+    
+        # Weather forecast fetch
+        lat = test_row["Latitude"].values[0]
+        lon = test_row["Longitude"].values[0]
+        weather_forecast = get_forecast_weather(lat, lon)
+    
+        feature_cols = [
+            col for col in train_data.columns
+            if any(col.startswith(v + "_lag") for v in ["AQHI", "Outdoor Temperature", "Wind Speed", "Relative Humidity"])
+        ]
+    
+        model = RandomForestRegressor(n_estimators=100, random_state=42)
+        X_train = train_data[feature_cols]
+        y_train = train_data["AQHI_target"]
+        model.fit(X_train, y_train)
+    
+        preds = []
+    
+        for step in range(3):
+            # Update weather lags
+            t_step = test_row["ReadingDate"].values[0] + pd.Timedelta(hours=step + 1)
+            row_weather = weather_forecast[weather_forecast["time"] == pd.Timestamp(t_step).round("h")]
+    
+            if not row_weather.empty:
+                test_row["Outdoor Temperature_lag1"] = row_weather["temperature"].values[0]
+                test_row["Relative Humidity_lag1"] = row_weather["humidity"].values[0]
+                test_row["Wind Speed_lag1"] = row_weather["windspeed"].values[0]
+    
+            pred = model.predict(test_row[feature_cols])[0]
+            preds.append(pred)
+    
+            # Shift AQHI lags forward
+            for lag in range(3, 0, -1):
+                from_col = f"AQHI_lag{lag - 1}" if lag > 1 else None
+                to_col = f"AQHI_lag{lag}"
+                test_row[to_col] = pred if lag == 1 else test_row[from_col].values[0]
+    
+        station_predictions.append({
+            "StationName": station,
+            "Latitude": test_row["Latitude"].values[0],
+            "Longitude": test_row["Longitude"].values[0],
+            "ForecastBaseTime": test_row["ReadingDate"].values[0],
+            "AQHI_forecast_t1": preds[0],
+            "AQHI_forecast_t2": preds[1],
+            "AQHI_forecast_t3": preds[2]
+        })
+    
+    return pd.DataFrame(station_predictions)
 
 
 def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.005):
