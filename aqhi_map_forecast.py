@@ -74,8 +74,7 @@ def prepare_forecast_features(df, lags=3):
         .rename(columns={"Value": "AQHI_now"})
     )
 
-    import requests
-
+import requests
 
     station_meta = df[["StationName", "Latitude", "Longitude"]].drop_duplicates()
     pivoted = df.pivot_table(index=["ReadingDate", "StationName"], columns="ParameterName", values="Value").reset_index()
@@ -119,13 +118,13 @@ def get_forecast_weather(lat, lon):
         "humidity": data["hourly"]["relative_humidity_2m"],
         "windspeed": data["hourly"]["windspeed_10m"]
     })
-    return df
+return df
 
 
 from sklearn.ensemble import RandomForestRegressor
 
 def forecast_next_3_hours(data):
-station_predictions = []
+    station_predictions = []
 
 for station in data['StationName'].unique():
     station_data = data[data['StationName'] == station].sort_values("ReadingDate")
