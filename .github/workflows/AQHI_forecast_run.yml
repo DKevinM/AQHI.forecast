@@ -21,8 +21,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "Installing dependencies..."
-          pip install -r requirements.txt
+          echo "Installing necessary Python packages..."
+          pip install pandas geopandas numpy requests shapely matplotlib scikit-learn
 
       - name: Run forecast
         run: |
@@ -35,7 +35,7 @@ jobs:
           if [ -d output ]; then
             ls -l output
           else
-            echo "⚠️ 'output/' folder not found"
+            echo "'output/' folder not found"
           fi
 
       - name: Commit GeoJSON files if they exist
