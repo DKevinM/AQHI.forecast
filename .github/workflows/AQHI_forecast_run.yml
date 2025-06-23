@@ -27,22 +27,25 @@ jobs:
       - name: Install dependencies
         run: |
           echo "Installing necessary Python packages..."
-          pip install pandas geopandas fiona pyogrio numpy requests shapely matplotlib scikit-learn
+          pip install pandas geopandas fiona numpy requests shapely
 
-      - name: Run forecast
+      - name: Generate current AQHI GeoJSONs
         run: |
           echo "Running aqhi_map_forecast.py..."
           python aqhi_map_forecast.py || { echo "Python script failed!"; exit 1; }
-          test -f output/AQHI_now.geojson || { echo "GeoJSON not created!"; exit 1; }
+          ls output/*.geojson || { echo "No GeoJSON files created!"; exit 1; }
 
-      - name: Debug output directory contents
+      - name: Confirm GeoJSON generation
         run: |
-          echo "Checking output folder:"
-          if [ -d output ]; then
-            ls -l output
+          count=$(ls output/*.geojson 2>/dev/null | wc -l)
+          if [ "$count" -eq 0 ]; then
+            echo " No GeoJSON files were generated."
+            exit 1
           else
-            echo "'output/' folder not found"
+            echo " $count GeoJSON files successfully generated:"
+            ls output/*.geojson
           fi
+
 
       - name: Commit GeoJSON files if they exist
         run: |
