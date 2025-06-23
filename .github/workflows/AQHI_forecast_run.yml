@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           echo "Installing necessary Python packages..."
-          pip install pandas geopandas fiona numpy requests shapely
+          pip install pandas geopandas fiona numpy requests shapely scipy
 
       - name: Generate current AQHI GeoJSONs
         run: |
