@@ -51,24 +51,32 @@ df = pd.read_csv(StringIO(response.text))
 
 
 df["ParameterName"] = df["ParameterName"].apply(lambda x: "AQHI" if pd.isna(x) or str(x).strip() == "" else x)
-df["ReadingDate"] = pd.to_datetime(df["ReadingDate"])
+df["ReadingDate"] = pd.to_datetime(df["ReadingDate"], utc=True)
+df["ReadingDate"] = df["ReadingDate"].dt.tz_convert("America/Edmonton")
 df["Value"] = pd.to_numeric(df["Value"], errors="coerce")
 df = df.dropna(subset=["Value", "Latitude", "Longitude"])
 
 
-def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.005):
+def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.005):  
     aqhi_only = df[df["ParameterName"] == "AQHI"]
-    
-    latest_hour = aqhi_only["ReadingDate"].dt.floor("H").max()
-    print(f"Using AQHI readings from: {latest_hour}")
-    
-    aqhi_hourly = aqhi_only[aqhi_only["ReadingDate"].dt.floor("H") == latest_hour]
-    latest_aqhi = aqhi_hourly.sort_values("ReadingDate").groupby("StationName").tail(1)
-    
+    floored_hours = aqhi_only["ReadingDate"].dt.floor("H")
+    latest_hour = floored_hours.max()
+    aqhi_hourly = aqhi_only[floored_hours == latest_hour]
+    if aqhi_hourly.empty:
+        print("No AQHI readings found for the latest hour.")
+        return
+    if not aqhi_hourly.empty:
+        latest_aqhi = aqhi_hourly.sort_values("ReadingDate").groupby("StationName").tail(1)
+    else:
+        print(" No valid AQHI hourly data after filtering.")
+        return
+   
     # Save key fields
+    latest_aqhi = aqhi_hourly.sort_values("ReadingDate").groupby("StationName").tail(1)
     latest_aqhi["Timestamp"] = latest_aqhi["ReadingDate"].dt.strftime("%Y-%m-%d %H:%M:%S")
     latest_aqhi = latest_aqhi.dropna(subset=["Value", "Latitude", "Longitude"])
 
+    
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
