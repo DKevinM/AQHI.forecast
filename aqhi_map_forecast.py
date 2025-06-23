@@ -73,6 +73,21 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
     # Debug: show how many points we’re interpolating from
     print(f"Generating current grid from {len(latest_aqhi)} stations")
 
+    shapefile_name = os.path.basename(shapefile_path).lower()
+    
+    # Adjust cell size based on region
+    if "aca" in shapefile_name:
+        cellsize = 0.05  # coarser grid for large area
+    elif "wcas" in shapefile_name:
+        cellsize = 0.05
+    elif "strathcona" in shapefile_name:
+        cellsize = 0.005
+    elif "edm" in shapefile_name:
+        cellsize = 0.005  # finer grid for city
+    else:
+        cellsize = 0.005  # default
+
+    
     region = gpd.read_file(shapefile_path).to_crs("EPSG:4326")
     xmin, ymin, xmax, ymax = region.total_bounds
     x = np.arange(xmin, xmax, cellsize)
