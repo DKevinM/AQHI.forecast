@@ -6,7 +6,6 @@ from datetime import datetime
 from shapely.geometry import Point, Polygon
 from scipy.spatial import cKDTree
 from scipy.interpolate import griddata
-import matplotlib.pyplot as plt
 from io import StringIO
 
 
