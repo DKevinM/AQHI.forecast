@@ -3,8 +3,11 @@ name: Generate and Commit GeoJSON
 on:
   push:
     branches:
-      - main  # or 'master'
-  workflow_dispatch:  # allows manual trigger from GitHub UI
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -28,6 +31,7 @@ jobs:
         run: |
           echo "Running aqhi_map_forecast.py..."
           python aqhi_map_forecast.py || { echo "Python script failed!"; exit 1; }
+          test -f output/AQHI_now.geojson || { echo "GeoJSON not created!"; exit 1; }
 
       - name: Debug output directory contents
         run: |
@@ -47,9 +51,11 @@ jobs:
             echo "Found GeoJSON files: ${files[@]}"
             git config --global user.name "GitHub Actions"
             git config --global user.email "actions@github.com"
+            git config --global --add safe.directory "$GITHUB_WORKSPACE"
+            git pull --rebase
             git add "${files[@]}"
             git commit -m "Add/update generated GeoJSON files"
             git push
           else
-            echo "❌ No GeoJSON files to commit."
+            echo " No GeoJSON files to commit."
           fi
