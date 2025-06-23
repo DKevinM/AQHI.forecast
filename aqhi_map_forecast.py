@@ -57,7 +57,16 @@ df = df.dropna(subset=["Value", "Latitude", "Longitude"])
 
 
 def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.005):
-    latest_aqhi = df[df["ParameterName"] == "AQHI"].sort_values("ReadingDate").groupby("StationName").tail(1)
+    aqhi_only = df[df["ParameterName"] == "AQHI"]
+    
+    latest_hour = aqhi_only["ReadingDate"].dt.floor("H").max()
+    print(f"Using AQHI readings from: {latest_hour}")
+    
+    aqhi_hourly = aqhi_only[aqhi_only["ReadingDate"].dt.floor("H") == latest_hour]
+    latest_aqhi = aqhi_hourly.sort_values("ReadingDate").groupby("StationName").tail(1)
+    
+    # Save key fields
+    latest_aqhi["Timestamp"] = latest_aqhi["ReadingDate"].dt.strftime("%Y-%m-%d %H:%M:%S")
     latest_aqhi = latest_aqhi.dropna(subset=["Value", "Latitude", "Longitude"])
 
     if not os.path.exists(output_dir):
@@ -124,23 +133,28 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
             val_ceiled = np.nan
             color = "#D3D3D3"
         else:
-            val_ceiled = int(np.ceil(val))
+            val_ceiled = min(int(np.ceil(val)), 11)
             color = get_aqhi_color(val_ceiled)
 
         polygons.append(poly)
         aqhi_vals.append(val_ceiled)
         colors.append(color)
+        labels = [f"AQHI {int(v)}" if not np.isnan(v) else "No Data" for v in aqhi_vals]
 
+    
     gdf = gpd.GeoDataFrame({
         "value": aqhi_vals,
+        "label": labels,
         "color": colors,
+        "timestamp": latest_hour.strftime("%Y-%m-%d %H:%M:%S"),
         "geometry": polygons
     }, crs="EPSG:4326")
 
     print("Done generating GeoJSONs")
 
     
-    out_path = os.path.join(output_dir, "AQHI_now.geojson")
+    shapefile_name = os.path.basename(shapefile_path).replace(".shp", "")
+    out_path = os.path.join(output_dir, f"AQHI_{shapefile_name}.geojson")
     gdf.to_file(out_path, driver="GeoJSON")
     print(f"Saved: {out_path}")
 
@@ -160,12 +174,6 @@ for shp in shapefiles:
             shapefile_path=str(shp),
             output_dir="output"
         )
-
-        # Rename output to match shapefile
-        old_path = os.path.join("output", "AQHI_now.geojson")
-        new_path = os.path.join("output", f"AQHI_{shapefile_name}.geojson")
-        os.rename(old_path, new_path)
-
-        print(f"Saved as: {new_path}")
     except Exception as e:
         print(f"Error processing {shapefile_name}: {e}")
+
