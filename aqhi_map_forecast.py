@@ -134,5 +134,27 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
     print(f"Saved: {out_path}")
 
 
-# Run this as your final process:
-generate_current_grid(df, shapefile_path="data/Edm.shp", output_dir="output")
+from pathlib import Path
+
+# Loop over each shapefile in the data directory
+shapefiles = list(Path("data").glob("*.shp"))
+
+for shp in shapefiles:
+    shapefile_name = shp.stem  # e.g., "Edm", "Strathcona"
+    print(f"\nProcessing: {shapefile_name}")
+
+    try:
+        generate_current_grid(
+            df,
+            shapefile_path=str(shp),
+            output_dir="output"
+        )
+
+        # Rename output to match shapefile
+        old_path = os.path.join("output", "AQHI_now.geojson")
+        new_path = os.path.join("output", f"AQHI_{shapefile_name}.geojson")
+        os.rename(old_path, new_path)
+
+        print(f"Saved as: {new_path}")
+    except Exception as e:
+        print(f"Error processing {shapefile_name}: {e}")
