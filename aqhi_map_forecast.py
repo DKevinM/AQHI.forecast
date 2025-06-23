@@ -107,16 +107,30 @@ def get_forecast_weather(lat, lon):
         "forecast_days": 1,
         "timezone": "America/Edmonton"
     }
-    response = requests.get(url, params=params, timeout=60)
-    data = response.json()
+    try:
+        response = requests.get(url, params=params, timeout=30)
+        response.raise_for_status()
+        data = response.json()
 
-    df = pd.DataFrame({
-        "time": pd.to_datetime(data["hourly"]["time"]),
-        "temperature": data["hourly"]["temperature_2m"],
-        "humidity": data["hourly"]["relative_humidity_2m"],
-        "windspeed": data["hourly"]["windspeed_10m"]
-    })
-    return df
+        return pd.DataFrame({
+            "time": pd.to_datetime(data["hourly"]["time"]),
+            "temperature": data["hourly"]["temperature_2m"],
+            "humidity": data["hourly"]["relative_humidity_2m"],
+            "windspeed": data["hourly"]["windspeed_10m"]
+        })
+        
+    except Exception as e:
+        print(f" Forecast failed: {e}")
+        if fallback_row is not None:
+            now = fallback_row["ReadingDate"].values[0]
+            return pd.DataFrame({
+                "time": [now],
+                "temperature": [fallback_row.get("Outdoor Temperature_lag1", np.nan)],
+                "humidity": [fallback_row.get("Relative Humidity_lag1", np.nan)],
+                "windspeed": [fallback_row.get("Wind Speed_lag1", np.nan)]
+            })
+        else:
+            raise RuntimeError("No weather data available and no fallback row provided.")
 
 
 def forecast_next_3_hours(data):
