@@ -1,8 +1,8 @@
+import requests
 import geopandas as gpd
 import pandas as pd
 import numpy as np
 import os
-import requests
 from datetime import datetime
 from shapely.geometry import Point, Polygon
 from scipy.spatial import cKDTree
@@ -98,7 +98,7 @@ def prepare_forecast_features(df, lags=3):
     return result[keep_cols]
 
     
-def get_forecast_weather(lat, lon):
+def get_forecast_weather(lat, lon, fallback_row=None):
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": lat,
@@ -112,6 +112,10 @@ def get_forecast_weather(lat, lon):
         response.raise_for_status()
         data = response.json()
 
+        print("API URL:", response.url)
+        print("API Status Code:", response.status_code)
+        print("API Response Text:", response.text[:300]) 
+
         return pd.DataFrame({
             "time": pd.to_datetime(data["hourly"]["time"]),
             "temperature": data["hourly"]["temperature_2m"],
@@ -121,15 +125,25 @@ def get_forecast_weather(lat, lon):
         
     except Exception as e:
         print(f" Forecast failed: {e}")
+        
         if fallback_row is not None:
-            now = fallback_row["ReadingDate"].values[0]
+            print(" Using fallback weather data.")
+            
+            try:
+                now = pd.to_datetime(fallback_row["ReadingDate"].values[0])
+            except Exception as e2:
+                print(f" Fallback failed to parse ReadingDate: {e2}")
+                now = pd.Timestamp.now()
+
             return pd.DataFrame({
                 "time": [now],
                 "temperature": [fallback_row.get("Outdoor Temperature_lag1", np.nan)],
                 "humidity": [fallback_row.get("Relative Humidity_lag1", np.nan)],
                 "windspeed": [fallback_row.get("Wind Speed_lag1", np.nan)]
             })
+
         else:
+            print(" No fallback row provided — re-raising error.")
             raise RuntimeError("No weather data available and no fallback row provided.")
 
 
