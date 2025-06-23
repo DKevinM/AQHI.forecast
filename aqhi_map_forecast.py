@@ -1,4 +1,3 @@
-import requests
 import geopandas as gpd
 import pandas as pd
 import numpy as np
@@ -7,7 +6,6 @@ from datetime import datetime
 from shapely.geometry import Point, Polygon
 from scipy.spatial import cKDTree
 from scipy.interpolate import griddata
-from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 from io import StringIO
 
