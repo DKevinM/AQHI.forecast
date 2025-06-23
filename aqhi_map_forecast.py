@@ -10,11 +10,11 @@ from scipy.interpolate import griddata
 from io import StringIO
 
 
-def get_aqhi_color(val):
+def get_aqhi_color(val_rounded):
     try:
-        if isinstance(val, str) and val.strip() == "10+":
+        if isinstance(val_rounded, str) and val.strip() == "10+":
             return "#640100"
-        v = int(np.ceil(float(val)))  # round up and ensure integer
+        v = int(round(float(val_rounded)))
         if v < 1:
             return "#D3D3D3"
         elif v == 1:
@@ -130,16 +130,16 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
 
         val = grid_values[i]
         if np.isnan(val):
-            val_ceiled = np.nan
+            val_rounded= np.nan
             color = "#D3D3D3"
         else:
-            val_ceiled = min(int(np.ceil(val)), 11)
+            val_rounded = min(int(round(val)), 11)
             color = get_aqhi_color(val_ceiled)
 
         polygons.append(poly)
-        aqhi_vals.append(val_ceiled)
+        aqhi_vals.append(val_rounded)
         colors.append(color)
-        labels = [f"AQHI {int(v)}" if not np.isnan(v) else "No Data" for v in aqhi_vals]
+        labels = [f"AQHI {v}" if not np.isnan(v) else "No Data" for v in aqhi_vals]
 
     
     gdf = gpd.GeoDataFrame({
