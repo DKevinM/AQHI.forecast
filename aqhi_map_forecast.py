@@ -80,10 +80,8 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
         cellsize = 0.05  # coarser grid for large area
     elif "wcas" in shapefile_name:
         cellsize = 0.05
-    elif "strathcona" in shapefile_name:
-        cellsize = 0.005
-    elif "edm" in shapefile_name:
-        cellsize = 0.005  # finer grid for city
+    elif "alberta" in shapefile_name:
+        cellsize = 0.5
     else:
         cellsize = 0.005  # default
 
