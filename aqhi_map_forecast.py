@@ -142,7 +142,7 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
             color = "#D3D3D3"
         else:
             val_rounded = min(int(round(val)), 11)
-            color = get_aqhi_color(val_ceiled)
+            color = get_aqhi_color(val_rounded)
 
         polygons.append(poly)
         aqhi_vals.append(val_rounded)
