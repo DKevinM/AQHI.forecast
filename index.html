@@ -81,7 +81,7 @@
         const layer = L.geoJson(data, {
           style: style,
           onEachFeature: (feature, layer) => {
-            layer.bindPopup(`${label}<br><b>AQHI:</b> ${feature.properties.value}`);
+            layer.bindPopup(`${dynamiclabel}<br><b>AQHI:</b> ${feature.properties.value}`);
           }
         });
       overlayLayers[dynamicLabel] = layer;
