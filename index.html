@@ -60,7 +60,7 @@
     return {
       fillColor: getColor(feature.properties.value),
       weight: 0.5,
-      opacity: 1,
+      opacity: 0.6,
       color: 'white',
       fillOpacity: 0.7
     };
@@ -75,14 +75,18 @@
     fetch(`./output/${file}`)
       .then(resp => resp.json())
       .then(data => {
+        const timestamp = data.features[0]?.properties?.timestamp || label;
+        const dynamicLabel = `AQHI @ ${timestamp}`;
+        
         const layer = L.geoJson(data, {
           style: style,
           onEachFeature: (feature, layer) => {
             layer.bindPopup(`${label}<br><b>AQHI:</b> ${feature.properties.value}`);
           }
         });
-        overlayLayers[label] = layer;
-        if (label === "Now") layer.addTo(map); // Default visible
+      overlayLayers[dynamicLabel] = layer;
+      layer.addTo(map);  // Add by default
+      L.control.layers(baseLayers, overlayLayers).addTo(map); // Default visible
       });
   }
 
