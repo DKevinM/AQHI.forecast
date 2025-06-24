@@ -58,7 +58,7 @@
 
   function style(feature) {
     return {
-      fillColor: getColor(feature.properties.aqhi_str),
+      fillColor: getColor(feature.properties.value),
       weight: 0.5,
       opacity: 1,
       color: 'white',
@@ -78,7 +78,7 @@
         const layer = L.geoJson(data, {
           style: style,
           onEachFeature: (feature, layer) => {
-            layer.bindPopup(`${label}<br><b>AQHI:</b> ${feature.properties.aqhi_str}`);
+            layer.bindPopup(`${label}<br><b>AQHI:</b> ${feature.properties.value}`);
           }
         });
         overlayLayers[label] = layer;
