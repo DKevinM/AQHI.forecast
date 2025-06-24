@@ -1,10 +1,10 @@
 name: Generate and Commit GeoJSON
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"  # every hour on the hour
+  workflow_dispatch:      # allows manual trigger
+  
 
 permissions:
   contents: write
