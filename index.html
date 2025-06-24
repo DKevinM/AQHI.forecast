@@ -62,7 +62,7 @@
       weight: 0.5,
       opacity: 0.6,
       color: 'white',
-      fillOpacity: 0.7
+      fillOpacity: 0.5
     };
   }
 
@@ -89,8 +89,6 @@
       L.control.layers(baseLayers, overlayLayers).addTo(map); // Default visible
       });
   }
-
-  L.control.layers(baseLayers, overlayLayers).addTo(map);
 
   // Add legend
   const legend = L.control({ position: 'bottomright' });
