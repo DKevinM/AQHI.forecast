@@ -98,7 +98,7 @@ def generate_current_grid(df, shapefile_path, output_dir="output", cellsize=0.00
     elif "wcas" in shapefile_name:
         cellsize = 0.05
     elif "alberta" in shapefile_name:
-        cellsize = 0.5
+        cellsize = 0.1
     else:
         cellsize = 0.005  # default
 
