@@ -75,24 +75,56 @@
     "ACA AQHI": "AQHI_ACA_Boundary_2022.geojson"
   };
 
-  for (const [label, file] of Object.entries(layersInfo)) {
+ // Load all AQHI GeoJSONs
+  Promise.all(Object.entries(layersInfo).map(([label, file]) =>
     fetch(`./output/${file}`)
       .then(resp => resp.json())
       .then(data => {
         const timestamp = data.features[0]?.properties?.timestamp || label;
-        const dynamicLabel = `AQHI @ ${timestamp}`;
-        
         const layer = L.geoJson(data, {
           style: style,
           onEachFeature: (feature, layer) => {
-            layer.bindPopup(`${dynamicLabel}<br><b>AQHI:</b> ${feature.properties.value}`);
+            layer.bindPopup(`AQHI @ ${timestamp}<br><b>AQHI:</b> ${feature.properties.value}`);
           }
         });
-      overlayLayers[dynamicLabel] = layer;
-      layer.addTo(map);  // Add by default
-      L.control.layers(baseLayers, overlayLayers).addTo(map); // Default visible
-      });
-  }
+        overlayLayers[label] = layer;
+        layer.addTo(map);  // Add visible by default
+      })
+  )).then(() => {
+    // Weather layers
+    const weatherLayers = {
+      "Radar": L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {
+        layers: "RADAR_1KM_RRAI",
+        format: "image/png",
+        transparent: true,
+        opacity: 0.85
+      }),
+      "Wind (U-component)": L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {
+        layers: "HRDPS.CONTINENTAL_UU",
+        format: "image/png",
+        transparent: true,
+        opacity: 0.7
+      }),
+      "Lightning": L.tileLayer.wms("https://geo.weather.gc.ca/geomet", {
+        layers: "Lightning_2.5km_Density",
+        format: "image/png",
+        transparent: true,
+        opacity: 0.85
+      }),
+      "Thunderstorm (3h)": L.tileLayer.wms("https://geo.weather.gc.ca/geomet", {
+        layers: "GDPS-WEonG_15km_Thunderstorm-Prob.3h",
+        format: "image/png",
+        transparent: true,
+        opacity: 0.75
+      })
+    };
+
+    // Merge AQHI and weather layers
+    const allOverlayLayers = { ...overlayLayers, ...weatherLayers };
+
+    // Single layer control (don't repeat inside loop!)
+    L.control.layers(baseLayers, allOverlayLayers).addTo(map);
+  });
 
   // Add legend
   const legend = L.control({ position: 'bottomright' });
