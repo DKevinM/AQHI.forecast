@@ -26,7 +26,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 <script>
-  const map = L.map('map').setView([53.5, -113.5], 8);
+  const map = L.map('map').setView([53.5461, -113.4938], 10);  // Downtown Edmonton
 
   // Base layers
   const baseLayers = {
@@ -88,7 +88,9 @@
           }
         });
         overlayLayers[label] = layer;
-        layer.addTo(map);  // Add visible by default
+        if (label === "Edmonton AQHI") {
+          layer.addTo(map);  // Only Edmonton shows initially
+        }
       })
   )).then(() => {
     // Weather layers
