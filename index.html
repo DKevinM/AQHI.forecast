@@ -28,8 +28,8 @@
 <script src="data.js"></script> 
    
 <script>
-  const map = L.map('map').setView([53.5461, -113.4938], 10);  // Downtown Edmonton
-  let layerControl; 
+  const map = L.map('map').setView([53.5461, -113.4938], 10);
+  let layerControl;
 
   // Base layers
   const baseLayers = {
@@ -148,21 +148,24 @@
   setInterval(() => location.reload(), 60 * 60 * 1000);
 </script>
 
-  <script>
-fetchAllStationData().then(allStations => {
-  allStations.forEach(({ stationName, lat, lon, html }) => {
-    const marker = L.circleMarker([lat, lon], {
-      radius: 7,
-      fillColor: "#3388ff",
-      color: "#222",
-      weight: 1,
-      fillOpacity: 0.85
-    }).bindPopup(html);
-    
-    marker.addTo(map);
-    stationMarkers.push(marker);
+<script>
+  window.dataReady.then(() => {
+    window.fetchAllStationData().then(allStations => {
+      const markerGroup = L.layerGroup();
+
+      allStations.forEach(({ stationName, lat, lon, html }) => {
+        const marker = L.circleMarker([lat, lon], {
+          radius: 7,
+          fillColor: "#3388ff",
+          color: "#222",
+          weight: 1,
+          fillOpacity: 0.85
+        }).bindPopup(html);
+        marker.addTo(markerGroup);
+      });
+      markerGroup.addTo(map);
+      layerControl.addOverlay(markerGroup, "All Station Markers");
   });
-  layerControl.addOverlay(markerGroup, "All Station Markers");
 });
 </script>
   
