@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Forecast AQHI Map</title>
+  <title>AQHI Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
@@ -18,6 +18,17 @@
       float: left;
       margin-right: 8px;
       opacity: 0.7;
+    }
+    .logo-container {
+      background: white;
+      padding: 6px;
+      border-radius: 8px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.3);
+    }
+    .logo-container img {
+      display: block;
+      max-width: 100px;
+      height: auto;
     }
   </style>
 </head>
@@ -146,6 +157,15 @@
   };
   legend.addTo(map);
 
+  const logo = L.control({ position: 'bottomright' });
+    logo.onAdd = function () {
+      const div = L.DomUtil.create('div', 'logo-container');
+      div.innerHTML = `<img src="ACA_LOGO_CMYK.png" alt="Logo">`; 
+      return div;
+    };
+    logo.addTo(map);
+  
+  
   // Auto-refresh every 60 minutes
   setInterval(() => location.reload(), 60 * 60 * 1000);
 </script>
@@ -154,10 +174,11 @@
 
   window.dataReady.then(() => {
   fetchAllStationData().then(allStations => {
-      allStations.forEach(({ stationName, lat, lon, html }) => {
+      allStations.forEach(({ stationName, lat, lon, html, aqhi }) => {
+        const fillColor = getColor(String(aqhi || "NA"));
         const marker = L.circleMarker([lat, lon], {
           radius: 7,
-          fillColor: "#3388ff",
+          fillColor: fillColor,
           color: "#222",
           weight: 1,
           fillOpacity: 0.85
@@ -165,7 +186,6 @@
         marker.addTo(markerGroup);
       });
       markerGroup.addTo(map);
-      layerControl.addOverlay(markerGroup, "");
   });
 });
 </script>
