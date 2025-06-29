@@ -35,8 +35,7 @@ const shortLookup = {
 
 
 
-
-fetch('https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/last6h.csv')
+window.dataReady = fetch('https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/last6h.csv')
   .then(res => res.text())
   .then(text => {
     const rows = text.trim().split('\n');
