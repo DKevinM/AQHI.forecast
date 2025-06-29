@@ -143,12 +143,13 @@ fetchAllStationData().then(allStations => {
     marker.addTo(map);
     stationMarkers.push(marker);
   });
-
-
-  
-  
   layerControl.addOverlay(L.layerGroup(stationMarkers), "All Station Markers");
 });
+
+
+
+
+  
   // Add legend
   const legend = L.control({ position: 'bottomright' });
   legend.onAdd = function () {
