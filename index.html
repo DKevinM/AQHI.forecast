@@ -29,6 +29,7 @@
    
 <script>
   const map = L.map('map').setView([53.5461, -113.4938], 10);  // Downtown Edmonton
+  let layerControl; 
 
   // Base layers
   const baseLayers = {
@@ -127,7 +128,7 @@
     const allOverlayLayers = { ...overlayLayers, ...weatherLayers };
 
     // Single layer control (don't repeat inside loop!)
-    const layerControl = L.control.layers(baseLayers, allOverlayLayers).addTo(map);
+    layerControl = L.control.layers(baseLayers, allOverlayLayers).addTo(map);
   });
 
 
@@ -162,7 +163,7 @@ fetchAllStationData().then(allStations => {
     marker.addTo(map);
     stationMarkers.push(marker);
   });
-  layerControl.addOverlay(L.layerGroup(stationMarkers), "Stations");
+  layerControl.addOverlay(markerGroup, "All Station Markers");
 });
 </script>
   
