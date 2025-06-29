@@ -144,6 +144,7 @@ const shortformOverride = {
       stationName,
       lat,
       lon,
+      aqhi: aqhiValue,
       html: `
         <div style="font-size:0.9em;">
           <strong>${stationName}</strong><br>
