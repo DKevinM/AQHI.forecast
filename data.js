@@ -112,59 +112,50 @@ const shortformOverride = {
 };
 
 
-    // Get latest timestamp from any record
-  const latestTimestamp = stationData
-    .map(row => new Date(row.ReadingDate))
-    .filter(d => !isNaN(d))  // Filter out invalid dates just in case
-    .sort((a, b) => b - a)[0]
-    .toLocaleString("en-CA", { timeZone: "America/Edmonton", hour12: true });
+  const results = stationNames.map(stationName => {
+    const stationData = dataByStation[stationName];
+    if (!stationData || stationData.length === 0) return null;
 
+    const paramLookup = {};
+    let latestTime = null;
+    for (const r of stationData) {
+      paramLookup[r.ParameterName] = r;
+      const t = new Date(r.ReadingDate);
+      if (!latestTime || t > latestTime) latestTime = t;
+    }
 
-  const paramLookup = {};
-  stationData.forEach(r => {
-    paramLookup[r.ParameterName] = r;
-  });
+    const displayTime = latestTime
+      ? latestTime.toLocaleString("en-CA", { timeZone: "America/Edmonton", hour12: true })
+      : "Invalid Date";
 
+    const lines = orderedParams
+      .filter(p => paramLookup[p] && p !== "AQHI")
+      .map(p => {
+        const r = paramLookup[p];
+        const label = shortformOverride[p] || r.Shortform || p;
+        const value = r.Value;
+        const unit = r.Units || "";
+        return `${label}: ${value}${unit}`;
+      });
 
-const rawTime = stationData[0]?.ReadingDate;
+    const aqhiValue = paramLookup["AQHI"]?.Value || "N/A";
+    const lat = stationData[0].Latitude;
+    const lon = stationData[0].Longitude;
 
-let parsedTime = null;
-if (rawTime) {
-  parsedTime = new Date(rawTime);  // Don't replace or modify
-}
-
-const timestamp = parsedTime && !isNaN(parsedTime.getTime())
-  ? parsedTime.toLocaleString("en-CA", {
-      timeZone: "America/Edmonton",
-      hour12: true
-    })
-  : "Invalid Date";
-
-console.log("Timestamp:", timestamp);
-
-  
- 
-  const rows = orderedParams
-    .filter(p => paramLookup[p] && p !== "AQHI")
-    .map(p => {
-      const r = paramLookup[p];
-      const label = shortformOverride[p] || r.Shortform || p;
-      const value = r.Value;
-      const unit = r.Units || "";
-      return `${label}: ${value}${unit}`;
-    });
-
-  
-  const aqhiValue = paramLookup["AQHI"]?.Value || "N/A";
-
-  const html = `
-    <div style="font-size:0.9em;">
-      <strong>${stationName}</strong><br>
-      <small><em>${timestamp}</em></small><br>
-      AQHI: ${aqhiValue}<br>
-      ${rows.join("<br>")}
-    </div>
-  `;
+    return {
+      stationName,
+      lat,
+      lon,
+      html: `
+        <div style="font-size:0.9em;">
+          <strong>${stationName}</strong><br>
+          <small><em>${displayTime}</em></small><br>
+          AQHI: ${aqhiValue}<br>
+          ${lines.join("<br>")}
+        </div>
+      `
+    };
+  }).filter(Boolean);
 
   return Promise.resolve(results);
 };
