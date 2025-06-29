@@ -149,8 +149,9 @@
 </script>
 
 <script>
+
   window.dataReady.then(() => {
-    window.fetchAllStationData().then(allStations => {
+  fetchAllStationData().then(allStations => {
       const markerGroup = L.layerGroup();
 
       allStations.forEach(({ stationName, lat, lon, html }) => {
