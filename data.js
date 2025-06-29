@@ -2,6 +2,7 @@
 let recentData = [];
 let dataByStation = {};
 window.dataByStation = dataByStation; 
+window.fetchAllStationData = function () { ... }
 
 
 
