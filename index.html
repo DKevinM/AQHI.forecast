@@ -128,6 +128,27 @@
     L.control.layers(baseLayers, allOverlayLayers).addTo(map);
   });
 
+
+  
+fetchAllStationData().then(allStations => {
+  allStations.forEach(({ stationName, lat, lon, html }) => {
+    const marker = L.circleMarker([lat, lon], {
+      radius: 7,
+      fillColor: "#3388ff",
+      color: "#222",
+      weight: 1,
+      fillOpacity: 0.85
+    }).bindPopup(html);
+    
+    marker.addTo(map);
+    stationMarkers.push(marker);
+  });
+
+
+  
+  
+  layerControl.addOverlay(L.layerGroup(stationMarkers), "All Station Markers");
+});
   // Add legend
   const legend = L.control({ position: 'bottomright' });
   legend.onAdd = function () {
