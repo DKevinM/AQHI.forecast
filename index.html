@@ -127,7 +127,7 @@
     const allOverlayLayers = { ...overlayLayers, ...weatherLayers };
 
     // Single layer control (don't repeat inside loop!)
-    L.control.layers(baseLayers, allOverlayLayers).addTo(map);
+    const layerControl = L.control.layers(baseLayers, allOverlayLayers).addTo(map);
   });
 
 
@@ -162,7 +162,7 @@ fetchAllStationData().then(allStations => {
     marker.addTo(map);
     stationMarkers.push(marker);
   });
-  layerControl.addOverlay(L.layerGroup(stationMarkers), "All Station Markers");
+  layerControl.addOverlay(L.layerGroup(stationMarkers), "Stations");
 });
 </script>
   
