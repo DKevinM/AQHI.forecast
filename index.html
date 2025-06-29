@@ -70,6 +70,8 @@
   }
 
   const overlayLayers = {};
+  const markerGroup = L.layerGroup(); 
+  overlayLayers["Stations"] = markerGroup;
   const layersInfo = {
     "Alberta AQHI": "AQHI_Alberta.geojson",
     "Edmonton AQHI": "AQHI_Edm.geojson",
@@ -152,8 +154,6 @@
 
   window.dataReady.then(() => {
   fetchAllStationData().then(allStations => {
-      const markerGroup = L.layerGroup();
-
       allStations.forEach(({ stationName, lat, lon, html }) => {
         const marker = L.circleMarker([lat, lon], {
           radius: 7,
@@ -165,7 +165,7 @@
         marker.addTo(markerGroup);
       });
       markerGroup.addTo(map);
-      layerControl.addOverlay(markerGroup, "All Station Markers");
+      layerControl.addOverlay(markerGroup, "");
   });
 });
 </script>
